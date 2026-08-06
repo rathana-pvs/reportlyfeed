@@ -6,6 +6,15 @@ async function importPulefeedArticles() {
   console.log('📦 Starting Pulefeed Articles Import for ReportlyFeed...')
   const payload = await getPayloadClient()
 
+  if (payload.db && typeof (payload.db as any).push === 'function') {
+    try {
+      console.log('⚡ Synchronizing database tables...')
+      await (payload.db as any).push()
+    } catch (e: any) {
+      console.log('DB sync notice:', e.message)
+    }
+  }
+
   const dataPath = path.resolve(process.cwd(), 'pulefeed_data.json')
   if (!fs.existsSync(dataPath)) {
     console.error('❌ pulefeed_data.json not found!')

@@ -6,6 +6,15 @@ async function seed() {
   console.log('🌱 Starting ReportlyFeed Database Seeding...')
   const payload = await getPayloadClient()
 
+  if (payload.db && typeof (payload.db as any).push === 'function') {
+    try {
+      console.log('⚡ Synchronizing database tables...')
+      await (payload.db as any).push()
+    } catch (e: any) {
+      console.log('DB sync notice:', e.message)
+    }
+  }
+
   // 1. Seed Admin User
   const existingUsers = await payload.find({ collection: 'users', limit: 1 })
   if (existingUsers.docs.length === 0) {
