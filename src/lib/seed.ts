@@ -52,11 +52,7 @@ async function seed() {
   }
 
   // 3. Seed High-Res External Press Photos
-  const mediaDir = path.resolve(process.cwd(), 'public/media')
-  if (!fs.existsSync(mediaDir)) {
-    fs.mkdirSync(mediaDir, { recursive: true })
-  }
-  const sampleFilePath = path.resolve(mediaDir, 'cover.jpg')
+  const sampleFilePath = '/tmp/sample_cover.jpg'
   if (!fs.existsSync(sampleFilePath)) {
     fs.writeFileSync(sampleFilePath, Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'))
   }
