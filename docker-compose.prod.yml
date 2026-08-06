@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-reportlyfeed}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-reportlyfeed123}
+      POSTGRES_DB: ${POSTGRES_DB:-reportlyfeed}
+    volumes:
+      - reportlyfeed_db_data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  app:
+    image: reportlyfeed:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URI: postgresql://${POSTGRES_USER:-reportlyfeed}:${POSTGRES_PASSWORD:-reportlyfeed123}@db:5432/${POSTGRES_DB:-reportlyfeed}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://reportlyfeed.com}
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
+    volumes:
+      - reportlyfeed_media_data:/app/public/media
+    networks:
+      - internal
+      - web
+
+  nginx:
+    image: nginx:1.25-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot_certs:/etc/letsencrypt:ro
+      - reportlyfeed_media_data:/var/www/media:ro
+    depends_on:
+      - app
+    networks:
+      - web
+
+networks:
+  internal:
+    driver: bridge
+  web:
+    driver: bridge
+
+volumes:
+  reportlyfeed_db_data:
+  reportlyfeed_media_data:
+  certbot_certs:
