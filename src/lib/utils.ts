@@ -64,24 +64,23 @@ export function getImageUrl(image: any): string {
   let url = ''
   if (typeof image === 'string') {
     url = image
-  } else if (image.source === 'external' && image.externalUrl) {
-    url = image.externalUrl
-  } else if (image.externalUrl) {
-    url = image.externalUrl
   } else if (image.url) {
     url = image.url
+  } else if (image.externalUrl) {
+    url = image.externalUrl
   }
 
   if (!url) return DEFAULT_NEWS_IMAGES[0]
 
-  // Intercept unresolved production domain media paths in local development
-  if (url.includes('reportlyfeed.com/media/cover') || url.includes('reportlyfeed.com/media/')) {
-    return DEFAULT_NEWS_IMAGES[1]
+  // Always serve local uploads via relative /media/ path to prevent CORS & Mixed Content errors
+  if (url.includes('/media/')) {
+    const filename = url.split('/media/').pop()
+    if (filename) return `/media/${filename}`
   }
 
-  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
-    return url
+  if (url.startsWith('http://')) {
+    return url.replace('http://', 'https://')
   }
 
-  return DEFAULT_NEWS_IMAGES[0]
+  return url
 }

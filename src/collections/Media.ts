@@ -42,22 +42,20 @@ export const Media: CollectionConfig = {
   hooks: {
     beforeChange: [
       ({ data }) => {
-        if (data.source === 'external' && data.externalUrl) {
-          data.url = data.externalUrl
-        } else if (data.filename) {
-          data.url = `${SITE_URL}/media/${data.filename}`
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportlyfeed.com'
+        if (data.filename) {
+          data.url = `${siteUrl}/media/${data.filename}`
         }
         return data
       },
     ],
     afterRead: [
       ({ doc }) => {
-        if (doc.source === 'external' && doc.externalUrl) {
-          doc.url = doc.externalUrl
-        } else if (doc.url && doc.url.startsWith('/api/media/file/')) {
-          doc.url = `${SITE_URL}/media/${doc.url.replace('/api/media/file/', '')}`
-        } else if (doc.url && doc.url.startsWith('/media/')) {
-          doc.url = `${SITE_URL}${doc.url}`
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportlyfeed.com'
+        if (doc.filename) {
+          doc.url = `${siteUrl}/media/${doc.filename}`
+        } else if (doc.url && doc.url.startsWith('http://')) {
+          doc.url = doc.url.replace('http://', 'https://')
         }
         return doc
       },
