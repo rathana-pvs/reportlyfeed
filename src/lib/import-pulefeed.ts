@@ -13,9 +13,9 @@ async function importPulefeedArticles() {
   }
 
   const rawData = fs.readFileSync(dataPath, 'utf-8')
-  const { articles = [], authors = [] } = JSON.parse(rawData)
+  const { articles = [] } = JSON.parse(rawData)
 
-  console.log(`🔍 Found ${articles.length} articles to import into ReportlyFeed...`)
+  console.log(`🔍 Found ${articles.length} articles in pulefeed_data.json to import...`)
 
   // Ensure default author exists
   let defaultAuthorId = ''
@@ -34,15 +34,29 @@ async function importPulefeedArticles() {
     defaultAuthorId = createdAuthor.id
   }
 
-  // Ensure default categories map exists
-  const existingCategories = await payload.find({ collection: 'categories', limit: 100 })
-  const categoryMap: Record<string, string> = {}
-  for (const cat of existingCategories.docs) {
-    categoryMap[cat.slug] = cat.id
+  // Ensure fallback media exists
+  const sampleFilePath = path.resolve(process.cwd(), 'public/media/cover.jpg')
+  let fallbackMediaId = ''
+  const existingMediaDocs = await payload.find({ collection: 'media', limit: 1 })
+  if (existingMediaDocs.docs.length > 0) {
+    fallbackMediaId = existingMediaDocs.docs[0].id
+  } else {
+    const createdFallbackMedia = await payload.create({
+      collection: 'media',
+      filePath: sampleFilePath,
+      data: {
+        alt: 'Reportly Default Press Image',
+        source: 'external',
+        externalUrl: 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=1600&auto=format&fit=crop',
+      },
+    })
+    fallbackMediaId = createdFallbackMedia.id
   }
 
   // Import each article
   let importedCount = 0
+  let skippedCount = 0
+
   for (const art of articles) {
     if (!art.title || !art.slug) continue
 
@@ -54,6 +68,7 @@ async function importPulefeedArticles() {
 
     if (existing.docs.length > 0) {
       console.log(`⏩ Article already exists: "${art.title}"`)
+      skippedCount++
       continue
     }
 
@@ -73,26 +88,26 @@ async function importPulefeedArticles() {
         if (existingMedia.docs.length > 0) {
           mediaId = existingMedia.docs[0].id
         } else {
-          // Create dummy sample local file for payload upload validation if needed
-          const sampleFilePath = path.resolve(process.cwd(), 'public/media/cover.jpg')
-          const createdMedia = await payload.create({
-            collection: 'media',
-            filePath: sampleFilePath,
-            data: {
-              alt: art.title,
-              source: 'external',
-              externalUrl: extUrl.startsWith('http') ? extUrl : `https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=1600&auto=format&fit=crop`,
-            },
-          })
-          mediaId = createdMedia.id
+          try {
+            const createdMedia = await payload.create({
+              collection: 'media',
+              filePath: sampleFilePath,
+              data: {
+                alt: art.title,
+                source: 'external',
+                externalUrl: extUrl.startsWith('http') ? extUrl : `https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=1600&auto=format&fit=crop`,
+              },
+            })
+            mediaId = createdMedia.id
+          } catch (e: any) {
+            mediaId = fallbackMediaId
+          }
         }
       }
     }
 
-    // Assign category matching slug or fallback
-    let catId = categoryMap['politics'] || Object.values(categoryMap)[0]
-    if (art.category && typeof art.category === 'object' && art.category.slug && categoryMap[art.category.slug]) {
-      catId = categoryMap[art.category.slug]
+    if (!mediaId) {
+      mediaId = fallbackMediaId
     }
 
     try {
@@ -102,7 +117,7 @@ async function importPulefeedArticles() {
         data: {
           title: art.title,
           slug: art.slug,
-          excerpt: art.excerpt || art.title,
+          excerpt: (art.excerpt || art.title).slice(0, 250),
           content: art.content || {
             root: {
               type: 'root',
@@ -114,8 +129,7 @@ async function importPulefeedArticles() {
               ],
             },
           },
-          coverImage: mediaId || Object.values(categoryMap)[0],
-          category: catId,
+          coverImage: mediaId,
           author: defaultAuthorId,
           tags: Array.isArray(art.tags) ? art.tags : [],
           status: 'published',
@@ -132,7 +146,7 @@ async function importPulefeedArticles() {
     }
   }
 
-  console.log(`🎉 Successfully imported ${importedCount} articles into ReportlyFeed!`)
+  console.log(`🎉 Import complete! Successfully imported ${importedCount} articles (${skippedCount} already existed).`)
   process.exit(0)
 }
 
