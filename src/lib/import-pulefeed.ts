@@ -44,7 +44,14 @@ async function importPulefeedArticles() {
   }
 
   // Ensure fallback media exists
-  const sampleFilePath = path.resolve(process.cwd(), 'public/media/cover.jpg')
+  const mediaDir = path.resolve(process.cwd(), 'public/media')
+  if (!fs.existsSync(mediaDir)) {
+    fs.mkdirSync(mediaDir, { recursive: true })
+  }
+  const sampleFilePath = path.resolve(mediaDir, 'cover.jpg')
+  if (!fs.existsSync(sampleFilePath)) {
+    fs.writeFileSync(sampleFilePath, Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'))
+  }
   let fallbackMediaId = ''
   const existingMediaDocs = await payload.find({ collection: 'media', limit: 1 })
   if (existingMediaDocs.docs.length > 0) {

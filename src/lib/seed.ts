@@ -57,6 +57,9 @@ async function seed() {
     fs.mkdirSync(mediaDir, { recursive: true })
   }
   const sampleFilePath = path.resolve(mediaDir, 'cover.jpg')
+  if (!fs.existsSync(sampleFilePath)) {
+    fs.writeFileSync(sampleFilePath, Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'))
+  }
 
   const mediaList = [
     {
