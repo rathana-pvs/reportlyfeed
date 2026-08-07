@@ -1,4 +1,6 @@
 import type { CollectionConfig } from 'payload'
+import { lexicalEditor, BlocksFeature } from '@payloadcms/richtext-lexical'
+import { VideoEmbed } from '../blocks/VideoEmbed'
 import { slugify } from '../lib/utils'
 import { revalidateTag } from 'next/cache'
 
@@ -12,9 +14,16 @@ export const Articles: CollectionConfig = {
     description: 'News articles and investigative reports published on ReportlyFeed.',
   },
   access: {
-    read: () => true,
+    read: ({ req }) => {
+      if (req.user) return true
+      return { status: { equals: 'published' } }
+    },
     create: ({ req }) => !!req.user,
-    update: ({ req }) => !!req.user,
+    update: ({ req }) => {
+      if (!req.user) return false
+      if ((req.user as any).role === 'admin' || (req.user as any).role === 'editor') return true
+      return { author: { equals: (req.user as any).id } }
+    },
     delete: ({ req }) => (req.user as any)?.role === 'admin',
   },
   hooks: {
@@ -86,7 +95,7 @@ export const Articles: CollectionConfig = {
       admin: {
         position: 'sidebar',
         components: {
-          Field: '@/components/admin/AIAssistant#AIAssistant',
+          Field: '/src/components/admin/AIAssistant#AIAssistant',
         },
       },
     },
@@ -96,12 +105,23 @@ export const Articles: CollectionConfig = {
       admin: {
         position: 'sidebar',
         components: {
-          Field: '@/components/admin/ShareLink#ShareLink',
+          Field: '/src/components/admin/ShareLink#ShareLink',
         },
       },
     },
     { name: 'excerpt', type: 'textarea', required: true, maxLength: 250 },
-    { name: 'content', type: 'richText', label: 'Content' },
+    {
+      name: 'content',
+      type: 'richText',
+      editor: lexicalEditor({
+        features: ({ defaultFeatures }) => [
+          ...defaultFeatures,
+          BlocksFeature({
+            blocks: [VideoEmbed],
+          }),
+        ],
+      }),
+    },
     { name: 'coverImage', type: 'upload', relationTo: 'media', required: true },
     { name: 'credit', type: 'text', admin: { description: 'News source or attribution (e.g. AP, Reuters, Reportly).' } },
     {
