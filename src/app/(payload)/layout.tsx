@@ -2,6 +2,7 @@ import { RootLayout, handleServerFunctions } from '@payloadcms/next/layouts'
 import React from 'react'
 import configPromise from '../../../payload.config'
 import { importMap } from './admin/importMap.js'
+import { AdminHardRefresh } from '@/components/admin/AdminHardRefresh'
 import '@payloadcms/next/css'
 
 // Filter Payload 3.x getFromImportMap dev mode warning
@@ -32,6 +33,7 @@ const serverFunction = async function (args: any) {
 export default function Layout({ children }: Args) {
   return (
     <RootLayout config={configPromise} importMap={importMap} serverFunction={serverFunction}>
+      <AdminHardRefresh />
       {children}
     </RootLayout>
   )
