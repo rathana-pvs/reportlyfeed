@@ -94,13 +94,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             {/* 4. Article Content (p1 -> in_article_1 -> p2 -> blur -> read more -> in_article_2 -> p3 -> p4...) */}
             <ArticleContent content={article.content} excerpt={article.excerpt} />
 
-            {/* 5. Bottom Feed / Under-Article Widget */}
+            {/* 5. Bottom Feed Ad Widget (News Page) */}
             <div className="pt-4 mt-4">
               <AdskeeperWidget
                 widgetId={
-                  process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_UNDER_ARTICLE ||
                   process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_FEED ||
-                  '2065377'
+                  '2065376'
                 }
                 label="Bottom Feed Ads"
               />
