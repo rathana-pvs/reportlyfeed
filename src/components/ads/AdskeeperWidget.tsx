@@ -67,8 +67,8 @@ export const AdskeeperWidget: React.FC<AdskeeperWidgetProps> = ({
   // 1. Render Mock Ad Preview for Local Development
   if (isDev) {
     return (
-      <div className={`my-6 rounded-lg border border-dashed border-accent-primary/40 bg-bg-surface/80 p-4 shadow-sm transition-all hover:border-accent-primary/60 ${className}`}>
-        <div className="flex items-center justify-between border-b border-border pb-2 mb-3">
+      <div className={`my-6 w-full ${className}`}>
+        <div className="flex items-center justify-between border-b border-border/40 pb-2 mb-3">
           <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-accent-primary flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-accent-primary animate-pulse" />
             <span>ADVERTISEMENT (LOCAL DEV MOCK)</span>
@@ -107,7 +107,7 @@ export const AdskeeperWidget: React.FC<AdskeeperWidgetProps> = ({
 
   // 3. Render Real Production Adskeeper Widget Slot
   return (
-    <div className={`my-6 overflow-hidden rounded-lg bg-bg-surface border border-border p-2 ${className}`} suppressHydrationWarning>
+    <div className={`my-6 overflow-hidden w-full ${className}`} suppressHydrationWarning>
       <div data-type="_mgwidget" data-widget-id={widgetId} id={`M${widgetId}`} suppressHydrationWarning />
     </div>
   )
