@@ -1,5 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
+import { WhosAmungUs } from '@/components/widgets/WhosAmungUs'
 
 export const Footer: React.FC = () => {
   return (
@@ -39,6 +40,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-gray-400">
           <p>© {new Date().getFullYear()} ReportlyFeed. All rights reserved. Independent Global News & Analysis.</p>
+          <WhosAmungUs />
         </div>
       </div>
     </footer>
