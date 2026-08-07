@@ -11,7 +11,7 @@ interface ArticleCardProps {
 }
 
 export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'medium' }) => {
-  const imageUrl = getImageUrl(article.coverImage)
+  const imageUrl = getImageUrl(article.coverImage, article.slug)
 
   if (variant === 'hero') {
     return (

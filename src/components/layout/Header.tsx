@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Search, Radio, User } from 'lucide-react'
+import { Search } from 'lucide-react'
 
 export const Header: React.FC = () => {
   const [searchOpen, setSearchOpen] = useState(false)
@@ -37,15 +37,6 @@ export const Header: React.FC = () => {
 
           {/* Quick Actions */}
           <div className="flex items-center gap-3">
-            {/* Live Feed Link */}
-            <Link
-              href="/live"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-accent-primary text-white hover:bg-accent-primary-hover text-xs font-mono font-bold tracking-wider transition-colors shadow-sm"
-            >
-              <Radio className="w-3.5 h-3.5 animate-pulse" />
-              <span>LIVE WIRE</span>
-            </Link>
-
             {/* Search Button */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
@@ -54,15 +45,6 @@ export const Header: React.FC = () => {
             >
               <Search className="w-4.5 h-4.5" />
             </button>
-
-            {/* CMS Admin Link */}
-            <Link
-              href="/admin"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded border border-border hover:bg-bg-hover text-text-secondary hover:text-text-primary text-xs font-mono font-semibold transition-colors"
-            >
-              <User className="w-3.5 h-3.5 text-accent-primary" />
-              <span>CMS Admin</span>
-            </Link>
           </div>
         </div>
 

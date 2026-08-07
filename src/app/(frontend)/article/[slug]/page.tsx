@@ -37,25 +37,21 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   return (
     <>
       <ReadingBar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 pt-0 pb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Main Article Content Column */}
-          <article className="lg:col-span-8 space-y-6">
-            {/* 1. Article Title */}
-            <header className="space-y-4">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary leading-tight tracking-tight">
+          <article className="lg:col-span-8 space-y-3">
+            {/* 1. Article Title & Date */}
+            <header className="space-y-1.5">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary leading-snug tracking-tight my-0">
                 {article.title}
               </h1>
-
-              {/* Timestamp Bar */}
-              <div className="pt-2 border-t border-b border-border py-3 flex items-center justify-between text-xs font-mono text-text-muted">
-                <div className="flex items-center gap-4">
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-accent-primary" />
-                    {formatDate(article.publishedAt)}
-                  </span>
-                  {article.readTime && <span>• {article.readTime} min read</span>}
-                </div>
+              <div className="flex items-center gap-3 text-xs font-mono text-text-muted pt-0.5">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-accent-primary" />
+                  {formatDate(article.publishedAt)}
+                </span>
+                {article.readTime && <span>• {article.readTime} min read</span>}
               </div>
             </header>
 
@@ -89,32 +85,28 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             {/* 4. Article Content (p1 -> in_article_1 -> p2 -> blur -> read more -> in_article_2 -> p3 -> p4...) */}
             <ArticleContent content={article.content} excerpt={article.excerpt} />
 
-            {/* 5. Bottom Feed (ads) */}
-            <div className="pt-6 mt-6">
-              <h3 className="text-xs font-mono uppercase tracking-widest text-text-muted mb-4 font-semibold">
-                Sponsored Content
-              </h3>
+            {/* 5. Bottom Feed / Under-Article Widget */}
+            <div className="pt-4 mt-4">
               <AdskeeperWidget
                 widgetId={
                   process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_UNDER_ARTICLE ||
-                  process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_FEED
+                  process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_FEED ||
+                  '2065377'
                 }
                 label="Bottom Feed Ads"
               />
             </div>
           </article>
 
-          {/* Right Side - Ads Sidebar (Show on PC/Desktop only, hide on mobile) */}
+          {/* Right Side - Ads Sidebar (PC / Desktop only - zero requests on mobile) */}
           <aside className="hidden lg:block lg:col-span-4 space-y-6">
             <div className="sticky top-20 space-y-6">
               <div className="bg-bg-surface rounded-xl border border-border p-4 shadow-sm">
-                <h3 className="text-xs font-mono uppercase tracking-widest text-text-muted mb-3 font-semibold pb-2 border-b border-border">
-                  Sponsored Sidebar
-                </h3>
                 <AdskeeperWidget
                   widgetId={process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_SIDEBAR}
                   label="Ads Sidebar"
                   className="my-2"
+                  desktopOnly
                 />
               </div>
             </div>

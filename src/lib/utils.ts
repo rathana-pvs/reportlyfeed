@@ -56,26 +56,41 @@ const DEFAULT_NEWS_IMAGES = [
   'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1600&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?q=80&w=1600&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1600&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1600&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1495020689067-958852a7765e?q=80&w=1600&auto=format&fit=crop',
 ]
 
-export function getImageUrl(image: any): string {
-  if (!image) return DEFAULT_NEWS_IMAGES[0]
+export function getImageUrl(image: any, fallbackKey?: string | number): string {
+  if (!image) {
+    if (fallbackKey !== undefined) {
+      const num = typeof fallbackKey === 'number' ? fallbackKey : String(fallbackKey).length
+      return DEFAULT_NEWS_IMAGES[num % DEFAULT_NEWS_IMAGES.length]
+    }
+    return DEFAULT_NEWS_IMAGES[0]
+  }
 
   let url = ''
   if (typeof image === 'string') {
     url = image
-  } else if (image.url) {
-    url = image.url
   } else if (image.externalUrl) {
     url = image.externalUrl
+  } else if (image.url) {
+    url = image.url
   }
 
   if (!url) return DEFAULT_NEWS_IMAGES[0]
 
-  // Always serve local uploads via relative /media/ path to prevent CORS & Mixed Content errors
+  // If local /media/ path is passed
   if (url.includes('/media/')) {
-    const filename = url.split('/media/').pop()
-    if (filename) return `/media/${filename}`
+    const filename = url.split('/media/').pop() || ''
+    // Ignore dummy placeholder files (e.g. 134-byte cover-X.jpg) and fallback to externalUrl or DEFAULT_NEWS_IMAGES
+    if (filename.startsWith('cover-')) {
+      if (image && typeof image === 'object' && image.externalUrl) {
+        return image.externalUrl
+      }
+      return DEFAULT_NEWS_IMAGES[0]
+    }
+    return `/media/${filename}`
   }
 
   if (url.startsWith('http://')) {

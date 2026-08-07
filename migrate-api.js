@@ -4,8 +4,8 @@
  *   node migrate-api.js --url http://72.61.12.198 --email admin@reportlyfeed.com --password adminpassword123
  */
 
-const fs = require('fs')
-const path = require('path')
+import fs from 'fs'
+import path from 'path'
 
 function parseArgs() {
   const args = process.argv.slice(2)

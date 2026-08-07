@@ -22,8 +22,11 @@ export default async function HomePage() {
       {/* Hero Featured Grid */}
       <HeroSection articles={heroArticles} />
 
-      {/* Sidebar Ad Widget Zone (Optional) */}
-      <AdskeeperWidget widgetId={process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_FEED} />
+      {/* Feed Ad Widget Zone */}
+      <AdskeeperWidget
+        widgetId={process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_FEED || '2065377'}
+        label="Bottom Feed Ads"
+      />
 
       {/* Main Content Layout with Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

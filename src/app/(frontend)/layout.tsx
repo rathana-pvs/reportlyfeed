@@ -44,10 +44,16 @@ export default function FrontendLayout({
     <html lang="en" className={`${jakarta.variable} ${sourceSerif.variable} ${jetbrainsMono.variable}`}>
       <body className="bg-bg-primary text-text-primary min-h-screen flex flex-col antialiased">
         <Header />
-        <main className="flex-1 max-w-container w-full mx-auto px-4 py-8">
+        <main className="flex-1 max-w-container w-full mx-auto px-4 pt-2 pb-6">
           {children}
         </main>
         <Footer />
+        {process.env.NEXT_PUBLIC_ADS_KEEPER_SITE_ID && (
+          <Script
+            src={`https://jsc.adskeeper.com/site/${process.env.NEXT_PUBLIC_ADS_KEEPER_SITE_ID}.js`}
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   )
