@@ -19,10 +19,10 @@ async function runWarmCache() {
     }
   }
 
-  // 2. Fetch all articles dynamically from REST API (supports 10, 100, 1000+ articles)
+  // 2. Fetch the 40 latest articles dynamically from REST API
   try {
-    console.log(`\n📡 Fetching article index from ${SITE_URL}/api/articles?limit=2000 ...`)
-    const res = await fetch(`${SITE_URL}/api/articles?limit=2000`)
+    console.log(`\n📡 Fetching article index from ${SITE_URL}/api/articles?limit=40 ...`)
+    const res = await fetch(`${SITE_URL}/api/articles?limit=40`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
     const data = await res.json()

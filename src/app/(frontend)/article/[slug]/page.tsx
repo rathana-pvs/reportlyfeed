@@ -1,12 +1,21 @@
 import React from 'react'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { getArticleBySlug } from '@/lib/api-server'
+import { getArticleBySlug, getArticles } from '@/lib/api-server'
 import { ReadingBar } from '@/components/ui/ReadingBar'
 import { AdskeeperWidget } from '@/components/ads/AdskeeperWidget'
 import { ArticleContent } from '@/components/article/ArticleContent'
 import { getImageUrl, formatDate } from '@/lib/utils'
 import { Clock } from 'lucide-react'
+
+export async function generateStaticParams() {
+  const articles = await getArticles({ limit: 40 })
+  return articles.map((art: any) => ({
+    slug: art.slug,
+  }))
+}
+
+export const dynamicParams = true
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
