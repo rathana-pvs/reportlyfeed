@@ -4,7 +4,6 @@ import { HeroSection } from '@/components/sections/HeroSection'
 import { LatestNewsGrid } from '@/components/sections/LatestNewsGrid'
 import { OpinionSection } from '@/components/sections/OpinionSection'
 import { MostRead } from '@/components/sections/MostRead'
-import { AdskeeperWidget } from '@/components/ads/AdskeeperWidget'
 
 export const revalidate = 60
 
@@ -21,12 +20,6 @@ export default async function HomePage() {
     <div className="space-y-12">
       {/* Hero Featured Grid */}
       <HeroSection articles={heroArticles} />
-
-      {/* Feed Ad Widget Zone */}
-      <AdskeeperWidget
-        widgetId={process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_FEED || '2065377'}
-        label="Bottom Feed Ads"
-      />
 
       {/* Main Content Layout with Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
