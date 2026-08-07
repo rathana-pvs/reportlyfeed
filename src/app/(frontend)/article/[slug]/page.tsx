@@ -1,7 +1,8 @@
 import React from 'react'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Image from 'next/image'
 import { getArticleBySlug, getArticles } from '@/lib/api-server'
+import { getPayloadClient } from '@/lib/payload'
 import { ReadingBar } from '@/components/ui/ReadingBar'
 import { AdskeeperWidget } from '@/components/ads/AdskeeperWidget'
 import { ArticleContent } from '@/components/article/ArticleContent'
@@ -35,9 +36,55 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const article = await getArticleBySlug(slug)
+  let article = await getArticleBySlug(slug)
 
   if (!article) {
+    // Check if slug is a share-link key
+    let targetArticleSlug: string | null = null
+    try {
+      const payload = await getPayloadClient()
+      const shareLinkDoc = await payload.find({
+        collection: 'share-links',
+        where: { key: { equals: slug } },
+        limit: 1,
+        depth: 1,
+        overrideAccess: true,
+      })
+
+      if (shareLinkDoc.docs.length > 0) {
+        const link = shareLinkDoc.docs[0] as any
+        try {
+          await payload.update({
+            collection: 'share-links',
+            id: link.id,
+            data: { clicks: (link.clicks || 0) + 1 },
+            overrideAccess: true,
+          })
+        } catch (e) {}
+
+        if (link.article) {
+          if (typeof link.article === 'object' && link.article.slug) {
+            targetArticleSlug = link.article.slug
+          } else if (typeof link.article === 'number' || typeof link.article === 'string') {
+            const articleDoc = await payload.findByID({
+              collection: 'articles',
+              id: link.article,
+              overrideAccess: true,
+            })
+            if (articleDoc?.slug) {
+              targetArticleSlug = articleDoc.slug
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('ShareLink fallback error:', err)
+    }
+
+    if (targetArticleSlug) {
+      redirect(`/article/${targetArticleSlug}`)
+    }
+
     notFound()
   }
 
