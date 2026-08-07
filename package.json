@@ -11,7 +11,8 @@
     "generate:types": "payload generate:types",
     "seed": "cross-env NODE_ENV=development PAYLOAD_CONFIG_PATH=payload.config.ts tsx src/lib/seed.ts",
     "import:pulefeed": "cross-env NODE_ENV=development PAYLOAD_CONFIG_PATH=payload.config.ts tsx src/lib/import-pulefeed.ts",
-    "migrate:aljazeera": "cross-env PAYLOAD_CONFIG_PATH=payload.config.ts tsx src/scripts/migrate-aljazeera.ts"
+    "migrate:aljazeera": "cross-env PAYLOAD_CONFIG_PATH=payload.config.ts tsx src/scripts/migrate-aljazeera.ts",
+    "warm-cache": "node scripts/warm-cache.js"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.31",
