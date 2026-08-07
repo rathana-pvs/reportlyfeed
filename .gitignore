@@ -30,9 +30,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# OS files
+# OS / IDE files
 .DS_Store
 *.pem
+.idea/
 
 # Payload
 /public/media

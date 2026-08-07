@@ -7,7 +7,10 @@ export const ShareLink: React.FC = () => {
   const { id } = useDocumentInfo()
   const { submit } = useForm()
   const modified = useFormModified()
-  const slugValue = useFormFields((args) => args?.[0]?.slug?.value)
+  const slugValue = useFormFields((state: any) => {
+    const fields = Array.isArray(state) ? state[0] : state;
+    return fields?.slug?.value;
+  })
   
   const [copied, setCopied] = useState(false)
   const [shareUrl, setShareUrl] = useState('')

@@ -37,7 +37,9 @@ export const AdskeeperWidget: React.FC<AdskeeperWidgetProps> = ({
   // Only load real Adskeeper script in Production mode (or when forced via env)
   useEffect(() => {
     if (!mounted || !widgetId || isDev) return
-    if (desktopOnly && isDesktop === false) return
+    // Do not initialize desktop-only widgets until the viewport has been
+    // measured and confirmed as desktop-sized.
+    if (desktopOnly && isDesktop !== true) return
 
     try {
       const siteId = process.env.NEXT_PUBLIC_ADS_KEEPER_SITE_ID || '1107405'
@@ -59,8 +61,9 @@ export const AdskeeperWidget: React.FC<AdskeeperWidgetProps> = ({
     }
   }, [widgetId, desktopOnly, isDesktop, mounted, isDev])
 
-  // Prevent rendering on mobile devices (< 1024px) when desktopOnly is set
-  if (desktopOnly && isDesktop === false) {
+  // Keep desktop-only slots out of the initial render and off mobile devices.
+  // This prevents both a visual flash and ad requests before the viewport check.
+  if (desktopOnly && isDesktop !== true) {
     return null
   }
 
@@ -112,5 +115,4 @@ export const AdskeeperWidget: React.FC<AdskeeperWidgetProps> = ({
     </div>
   )
 }
-
 

@@ -19,8 +19,14 @@ type Action = 'full' | 'content_only' | 'seo_only' | 'scrape_direct'
 
 export const AIAssistant: React.FC = () => {
   const { dispatchFields } = useForm()
-  const titleValue = useFormFields(([fields]) => fields?.title?.value as string || '')
-  const excerptValue = useFormFields(([fields]) => fields?.excerpt?.value as string || '')
+  const titleValue = useFormFields((state: any) => {
+    const fields = Array.isArray(state) ? state[0] : state;
+    return (fields?.title?.value as string) || ''
+  })
+  const excerptValue = useFormFields((state: any) => {
+    const fields = Array.isArray(state) ? state[0] : state;
+    return (fields?.excerpt?.value as string) || ''
+  })
 
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -30,6 +36,7 @@ export const AIAssistant: React.FC = () => {
   const [applied, setApplied] = useState<Record<string, boolean>>({})
   const [pulse, setPulse] = useState(true)
   const [scrapeUrlValue, setScrapeUrlValue] = useState('')
+
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {

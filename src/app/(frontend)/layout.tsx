@@ -4,8 +4,6 @@ import '../globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 
-import Script from 'next/script'
-
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-jakarta',
@@ -48,12 +46,6 @@ export default function FrontendLayout({
           {children}
         </main>
         <Footer />
-        {process.env.NEXT_PUBLIC_ADS_KEEPER_SITE_ID && (
-          <Script
-            src={`https://jsc.adskeeper.com/site/${process.env.NEXT_PUBLIC_ADS_KEEPER_SITE_ID}.js`}
-            strategy="afterInteractive"
-          />
-        )}
       </body>
     </html>
   )
