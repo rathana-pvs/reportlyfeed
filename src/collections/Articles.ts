@@ -14,6 +14,11 @@ export const Articles: CollectionConfig = {
   access: {
     read: ({ req }) => {
       if (req.user) return true
+      const url = req?.url || ''
+      const referer = req?.headers?.get?.('referer') || ''
+      if (url.includes('/admin') || referer.includes('/admin')) {
+        return false
+      }
       return { status: { equals: 'published' } }
     },
     create: ({ req }) => !!req.user,
