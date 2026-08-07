@@ -109,14 +109,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           {/* Right Side - Ads Sidebar (PC / Desktop only - zero requests on mobile) */}
           <aside className="hidden lg:block lg:col-span-4 space-y-6">
             <div className="sticky top-20 space-y-6">
-              <div className="bg-bg-surface rounded-xl border border-border p-4 shadow-sm">
-                <AdskeeperWidget
-                  widgetId={process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_SIDEBAR}
-                  label="Ads Sidebar"
-                  className="my-2"
-                  desktopOnly
-                />
-              </div>
+              <AdskeeperWidget
+                widgetId={process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_SIDEBAR}
+                label="Ads Sidebar"
+                className="my-0"
+                desktopOnly
+              />
             </div>
           </aside>
         </div>
