@@ -19,14 +19,8 @@ type Action = 'full' | 'content_only' | 'seo_only' | 'scrape_direct'
 
 export const AIAssistant: React.FC = () => {
   const { dispatchFields } = useForm()
-  const titleValue = useFormFields((state: any) => {
-    const fields = Array.isArray(state) ? state[0] : state;
-    return (fields?.title?.value as string) || ''
-  })
-  const excerptValue = useFormFields((state: any) => {
-    const fields = Array.isArray(state) ? state[0] : state;
-    return (fields?.excerpt?.value as string) || ''
-  })
+  const titleValue = useFormFields(([fields]: any) => fields?.title?.value as string || '')
+  const excerptValue = useFormFields(([fields]: any) => fields?.excerpt?.value as string || '')
 
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')

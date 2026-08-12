@@ -308,7 +308,7 @@ async function scrapeUrlDirectly(url: string) {
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, '')
       .split(/\s+/)
-      .filter(w => w.length > 4 && !['about', 'after', 'before', 'their', 'there', 'these', 'would', 'pulefeed'].includes(w))
+      .filter(w => w.length > 4 && !['about', 'after', 'before', 'their', 'there', 'these', 'would', 'reportlyfeed'].includes(w))
       .slice(0, 4)
   }
 
@@ -414,7 +414,7 @@ async function scrapeUrlDirectly(url: string) {
     rawBlocks.push(...filteredBlocks)
   }
 
-  const metaTitle = title.endsWith(' - Pulefeed') ? title : `${title.substring(0, 45)} - Pulefeed`
+  const metaTitle = title.endsWith(' - ReportlyFeed') ? title : `${title.substring(0, 45)} - ReportlyFeed`
   const fallbackParagraph = cleanParagraphs.find(p => !isJunkText(p) && p.length > 40) || content
   const finalExcerpt = (excerpt && !isJunkText(excerpt)) ? excerpt : (fallbackParagraph.length > 200 ? fallbackParagraph.substring(0, 200) + '...' : fallbackParagraph)
   
@@ -634,6 +634,7 @@ const googleAI = createGoogleGenerativeAI({
   apiKey,
   headers: {
     'x-goog-api-key': apiKey,
+    'x-goog-api-client': process.env.GEMINI_CLIENT_ID || 'gen-lang-client-0869938843',
   },
 })
 
@@ -667,7 +668,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ allOk, models: results }, { status: allOk ? 200 : 500 })
 }
 
-const SYSTEM_PROMPT = `You are an expert news editor and content writer for Pulefeed, a reputable English-language news website covering global news, politics, technology, business, and culture.
+const SYSTEM_PROMPT = `You are an expert news editor and content writer for ReportlyFeed, a reputable English-language news website covering global news, politics, technology, business, and culture.
 
 For content summarization and AI formatting, follow these strict editorial rules:
 1. Lead Excerpt / Summary: Create a punchy, high-engagement lead summary strictly under 160 characters.
@@ -679,7 +680,7 @@ For content summarization and AI formatting, follow these strict editorial rules
 7. Eliminate Fluff & Redundancies: Strip away unnecessary background details, conversational filler, repetitive examples, and minor anecdotes.
 8. Maintain Factual Accuracy: Preserve the original meaning and context without altering facts or adding unverified information.
 9. SEO Metadata Limits:
-   - Meta Title: 50–60 characters (including - Pulefeed suffix).
+   - Meta Title: 50–60 characters (including - ReportlyFeed suffix).
    - Meta Description: 100–150 characters.
 
 Always respond with valid JSON only. No markdown, no explanations outside the JSON.`
@@ -853,7 +854,7 @@ export async function POST(req: NextRequest) {
 1. "excerpt": A punchy, high-engagement lead summary strictly under 160 characters.
 2. "content": Summary body of EXACTLY 4 short paragraphs (no H2/H3 subheadings). Total word count MUST be strictly between 120 and 140 words. Each paragraph MUST be at most 35 words long. Do NOT duplicate title.
 3. "tags": ["3-5 relevant lowercase tags"]
-4. "metaTitle": SEO title strictly 50-60 characters ending with - Pulefeed.
+4. "metaTitle": SEO title strictly 50-60 characters ending with - ReportlyFeed.
 5. "metaDescription": SEO meta description strictly 100-150 characters.
 
 Return valid JSON with exact keys: { "excerpt", "content", "tags", "metaTitle", "metaDescription" }`
@@ -924,7 +925,7 @@ Return valid JSON with exact keys: { "excerpt", "content", "tags", "metaTitle", 
 - "excerpt": A punchy, high-engagement lead summary strictly under 160 characters.
 - "content": Summary body of EXACTLY 4 short paragraphs (no H2/H3 subheadings). Total word count MUST be between 120 and 140 words. Each paragraph MUST be at most 35 words long.
 - "tags": ["3-5 relevant lowercase tags"]
-- "metaTitle": SEO title strictly 50-60 characters ending with - Pulefeed.
+- "metaTitle": SEO title strictly 50-60 characters ending with - ReportlyFeed.
 - "metaDescription": SEO meta description strictly 100-150 characters.
 
 Return JSON with exact keys: { "excerpt", "content", "tags", "metaTitle", "metaDescription" }`
@@ -938,7 +939,7 @@ Return JSON with exact keys: { "excerpt", "content" }`
       prompt = `Given the article title "${title}"${content ? ` and excerpt/content: "${content}"` : ''}, generate SEO metadata adhering to these rules:
 - "excerpt": A punchy, high-engagement lead summary strictly under 160 characters.
 - "tags": ["3-5 relevant lowercase tags"]
-- "metaTitle": SEO title strictly 50-60 characters ending with - Pulefeed.
+- "metaTitle": SEO title strictly 50-60 characters ending with - ReportlyFeed.
 - "metaDescription": SEO meta description strictly 100-150 characters.
 
 Return JSON with exact keys: { "excerpt", "tags", "metaTitle", "metaDescription" }`
@@ -986,11 +987,11 @@ Return JSON with exact keys: { "excerpt", "tags", "metaTitle", "metaDescription"
 function enforceSeoLimits(seoData: any) {
   if (!seoData) return seoData
 
-  // 1. Meta Title: 50–60 characters (including - Pulefeed suffix)
+  // 1. Meta Title: 50–60 characters (including - ReportlyFeed suffix)
   if (seoData.metaTitle && typeof seoData.metaTitle === 'string') {
     let title = seoData.metaTitle.trim()
     if (title.length > 60) {
-      const suffix = title.endsWith(' - Pulefeed') ? ' - Pulefeed' : (title.endsWith(' | Pulefeed') ? ' | Pulefeed' : '')
+      const suffix = title.endsWith(' - ReportlyFeed') ? ' - ReportlyFeed' : (title.endsWith(' | ReportlyFeed') ? ' | ReportlyFeed' : '')
       const maxPrefixLength = 60 - suffix.length
       if (suffix) {
         let prefix = title.substring(0, title.length - suffix.length).trim()
