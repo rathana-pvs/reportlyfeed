@@ -36,7 +36,20 @@ export const Header: React.FC = () => {
           </Link>
 
           {/* Quick Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/news"
+              className="text-xs font-mono font-bold uppercase tracking-wider text-text-secondary hover:text-accent-primary transition-colors px-2.5 py-1.5 rounded hover:bg-bg-hover"
+            >
+              All News
+            </Link>
+            <Link
+              href="/live"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-accent-live hover:text-accent-live/80 transition-colors px-2.5 py-1.5 rounded hover:bg-bg-hover"
+            >
+              <span className="w-2 h-2 rounded-full bg-accent-live animate-pulse" />
+              Live
+            </Link>
             {/* Search Button */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}

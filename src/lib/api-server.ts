@@ -1,13 +1,26 @@
 import { getPayloadClient } from './payload'
 import { unstable_cache } from 'next/cache'
 
-export const getArticles = (options: {
+export interface GetArticlesOptions {
+  page?: number
   limit?: number
   isBreaking?: boolean
   isFeatured?: boolean
   tag?: string
   search?: string
-} = {}) =>
+}
+
+export interface PaginatedArticlesResult {
+  docs: any[]
+  totalDocs: number
+  totalPages: number
+  page: number
+  limit: number
+  hasNextPage: boolean
+  hasPrevPage: boolean
+}
+
+export const getPaginatedArticles = (options: GetArticlesOptions = {}): Promise<PaginatedArticlesResult> =>
   unstable_cache(
     async () => {
       try {
@@ -34,21 +47,45 @@ export const getArticles = (options: {
         const res = await payload.find({
           collection: 'articles',
           where,
+          page: options.page || 1,
           limit: options.limit || 20,
           sort: '-publishedAt',
           depth: 2,
           overrideAccess: true,
         })
 
-        return JSON.parse(JSON.stringify(res.docs))
+        return JSON.parse(
+          JSON.stringify({
+            docs: res.docs,
+            totalDocs: res.totalDocs,
+            totalPages: res.totalPages,
+            page: res.page || 1,
+            limit: res.limit,
+            hasNextPage: res.hasNextPage,
+            hasPrevPage: res.hasPrevPage,
+          })
+        )
       } catch (err) {
-        console.error('Error fetching articles:', err)
-        return []
+        console.error('Error fetching paginated articles:', err)
+        return {
+          docs: [],
+          totalDocs: 0,
+          totalPages: 0,
+          page: options.page || 1,
+          limit: options.limit || 20,
+          hasNextPage: false,
+          hasPrevPage: false,
+        }
       }
     },
-    ['get-articles', JSON.stringify(options)],
+    ['get-paginated-articles', JSON.stringify(options)],
     { tags: ['articles'], revalidate: 60 }
   )()
+
+export const getArticles = async (options: GetArticlesOptions = {}) => {
+  const result = await getPaginatedArticles(options)
+  return result.docs
+}
 
 export const getArticleBySlug = (slug: string) =>
   unstable_cache(

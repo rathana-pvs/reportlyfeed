@@ -28,10 +28,11 @@ export const Footer: React.FC = () => {
               Navigation
             </h4>
             <ul className="space-y-2 text-xs font-sans text-gray-300">
+              <li><Link href="/news" className="hover:text-accent-primary transition-colors">All News</Link></li>
+              <li><Link href="/live" className="hover:text-accent-primary transition-colors">Live Wire</Link></li>
               <li><Link href="/about" className="hover:text-accent-primary transition-colors">About</Link></li>
               <li><Link href="/contact" className="hover:text-accent-primary transition-colors">Contact</Link></li>
               <li><Link href="/privacy" className="hover:text-accent-primary transition-colors">Privacy & Terms</Link></li>
-              <li><Link href="/live" className="hover:text-accent-primary transition-colors">Live Wire</Link></li>
               <li><Link href="/admin" className="hover:text-accent-primary transition-colors">CMS Admin</Link></li>
             </ul>
           </div>
