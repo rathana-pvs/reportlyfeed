@@ -37,7 +37,7 @@ export const LoadMoreGrid: React.FC<LoadMoreGridProps> = ({
     setError(null)
 
     try {
-      const res = await fetch(`/api/articles?page=${page}&limit=${limit}`)
+      const res = await fetch(`/api/articles?page=${page}&limit=${limit}&sort=-publishedAt&depth=1`)
       if (!res.ok) {
         throw new Error(`Failed to load articles (${res.status})`)
       }
