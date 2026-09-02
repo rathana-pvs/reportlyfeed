@@ -638,8 +638,8 @@ const googleAI = createGoogleGenerativeAI({
   },
 })
 
-const PRIMARY_MODEL_ID = 'gemini-3.5-flash-lite'
-const FALLBACK_MODEL_ID = 'gemini-2.5-flash'
+const PRIMARY_MODEL_ID = 'gemini-2.0-flash'
+const FALLBACK_MODEL_ID = 'gemini-1.5-flash'
 
 const primaryModel = googleAI(PRIMARY_MODEL_ID)
 const fallbackModel = googleAI(FALLBACK_MODEL_ID)
