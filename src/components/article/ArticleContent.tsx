@@ -93,6 +93,37 @@ export const ArticleContent: React.FC<ArticleContentProps> = ({ content, excerpt
       )
     }
 
+    if (block.type === 'block' && block.fields?.blockType === 'twitterEmbed') {
+      const { url, tweetText, author, authorHandle, date } = block.fields || {}
+      return (
+        <div key={index} className="my-6 p-4 rounded-xl border border-border bg-bg-surface/60 max-w-xl mx-auto shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-accent-primary/20 flex items-center justify-center text-accent-primary font-bold text-xs">
+                {author ? author.charAt(0).toUpperCase() : 'X'}
+              </div>
+              <div>
+                <div className="font-semibold text-text-primary text-sm leading-tight">{author || 'Post'}</div>
+                <div className="text-text-muted text-xs">{authorHandle || '@x'}</div>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-text-muted fill-current" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          </div>
+          {tweetText && <p className="text-text-primary font-sans text-sm mb-3 leading-normal whitespace-pre-wrap">{tweetText}</p>}
+          <div className="flex items-center justify-between text-xs text-text-muted pt-2 border-t border-border/50">
+            <span>{date || ''}</span>
+            {url && (
+              <a href={url} target="_blank" rel="noopener noreferrer" className="text-accent-primary hover:underline">
+                View on X
+              </a>
+            )}
+          </div>
+        </div>
+      )
+    }
+
     if (block.type === 'upload' && block.value?.url) {
       const imgUrl = getImageUrl(block.value)
       return (

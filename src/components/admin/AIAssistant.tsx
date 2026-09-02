@@ -120,6 +120,52 @@ export const AIAssistant: React.FC = () => {
     }
   }
 
+  const sanitizeLexicalValue = (lexicalJson: any) => {
+    if (!lexicalJson || !lexicalJson.root || !Array.isArray(lexicalJson.root.children)) {
+      return lexicalJson
+    }
+
+    const allowedBlockTypes = ['videoEmbed', 'twitterEmbed']
+
+    const cleanChildren = lexicalJson.root.children.map((node: any) => {
+      if (!node) return null
+      // Check for block nodes
+      if (node.type === 'block') {
+        const blockType = node.fields?.blockType
+        if (!blockType || !allowedBlockTypes.includes(blockType)) {
+          const text = node.fields?.tweetText || node.fields?.text || node.fields?.caption || node.fields?.url || ''
+          if (!text) return null
+          return {
+            type: 'paragraph',
+            format: '',
+            indent: 0,
+            version: 1,
+            children: [{ type: 'text', text: String(text), format: 0, style: '', version: 1 }],
+            direction: 'ltr',
+          }
+        }
+      }
+      return node
+    }).filter(Boolean)
+
+    return {
+      ...lexicalJson,
+      root: {
+        ...lexicalJson.root,
+        children: cleanChildren.length > 0 ? cleanChildren : [
+          {
+            type: 'paragraph',
+            format: '',
+            indent: 0,
+            version: 1,
+            children: [],
+            direction: 'ltr',
+          }
+        ]
+      }
+    }
+  }
+
   const applyField = (fieldName: string, value: any) => {
     if (fieldName === 'excerpt' && typeof value === 'string' && result?.title) {
       let cleanExcerpt = value
@@ -142,7 +188,7 @@ export const AIAssistant: React.FC = () => {
       dispatchFields({ type: 'UPDATE', path: 'og.ogImage', value, valid: true })
       dispatchFields({ type: 'UPDATE', path: 'meta.image', value, valid: true })
     } else if (fieldName === 'content') {
-      let lexicalValue = typeof value === 'string' ? convertTextToLexicalJson(value) : value
+      let lexicalValue = typeof value === 'string' ? convertTextToLexicalJson(value) : sanitizeLexicalValue(value)
       if (lexicalValue?.root?.children && result?.title) {
         const cleanT = result.title.trim().toLowerCase()
         const prefix = cleanT.substring(0, Math.min(25, cleanT.length))
@@ -176,6 +222,28 @@ export const AIAssistant: React.FC = () => {
     }
     setApplied(prev => ({ ...prev, [fieldName]: true }))
   }
+
+  const applyAll = () => {
+    if (!result) return
+    if (result.title) applyField('title', result.title)
+    if (result.coverImage) applyField('coverImage', result.coverImage)
+    if (result.excerpt) applyField('excerpt', result.excerpt)
+    if (result.content) applyField('content', result.content)
+    if (result.tags && result.tags.length > 0) applyField('tags', result.tags)
+    if (result.metaTitle) applyField('metaTitle', result.metaTitle)
+    if (result.metaDescription) applyField('metaDescription', result.metaDescription)
+  }
+
+  const allApplied = Boolean(
+    result &&
+    (!result.title || applied['title']) &&
+    (!result.coverImage || applied['coverImage']) &&
+    (!result.excerpt || applied['excerpt']) &&
+    (!result.content || applied['content']) &&
+    (!result.tags || result.tags.length === 0 || applied['tags']) &&
+    (!result.metaTitle || applied['metaTitle']) &&
+    (!result.metaDescription || applied['metaDescription'])
+  )
 
   const buttons: { action: Action; icon: string; label: string; desc: string }[] = [
     { action: 'full', icon: '✍️', label: 'Full', desc: 'Generate content, excerpt & SEO' },
@@ -315,6 +383,32 @@ export const AIAssistant: React.FC = () => {
         }
         .ai-apply-btn:hover:not(:disabled) { background: #6558e0; }
         .ai-apply-btn:disabled { background: #2ecc71; cursor: default; }
+        .ai-apply-all-btn {
+          padding: 6px 14px;
+          border: none;
+          border-radius: 6px;
+          background: linear-gradient(135deg, #7c6af7 0%, #2085ec 100%);
+          color: #fff;
+          font-size: 11px;
+          font-weight: 700;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          transition: all 0.15s ease;
+          box-shadow: 0 2px 10px rgba(124,106,247,0.4);
+          font-family: inherit;
+        }
+        .ai-apply-all-btn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 14px rgba(124,106,247,0.6);
+        }
+        .ai-apply-all-btn:disabled {
+          background: #2ecc71;
+          box-shadow: none;
+          cursor: default;
+          transform: none;
+        }
         .ai-result { animation: ai-fade-in 0.3s ease forwards; }
         .ai-tag {
           display: inline-block;
@@ -475,13 +569,31 @@ export const AIAssistant: React.FC = () => {
             {status === 'success' && result && (
               <div className="ai-result" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
                 <div style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: '#2ecc71',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  padding: '4px 0',
-                }}>✅ Ready — click to apply</div>
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '6px 0',
+                  borderBottom: '1px solid var(--theme-border-color, #30363d)',
+                  marginBottom: 4,
+                }}>
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: '#2ecc71',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}>
+                    ✅ Ready to Apply
+                  </div>
+                  <button
+                    type="button"
+                    className="ai-apply-all-btn"
+                    disabled={allApplied}
+                    onClick={applyAll}
+                  >
+                    {allApplied ? '✓ All Applied' : '⚡ Apply All'}
+                  </button>
+                </div>
 
                 {result.title && (
                   <ResultCard label="Title" value={result.title} applied={!!applied['title']} onApply={() => applyField('title', result.title)} />
@@ -498,12 +610,20 @@ export const AIAssistant: React.FC = () => {
                 {result.excerpt && (
                   <ResultCard label="Excerpt" value={result.excerpt} applied={!!applied['excerpt']} onApply={() => applyField('excerpt', result.excerpt)} />
                 )}
-                 {result.content && (
+                {result.content && (
                   <ResultCard 
                     label="Article Content" 
                     value={typeof result.content === 'string' ? result.content.substring(0, 160) + '...' : 'Beautifully formatted rich text (including paragraphs, headings, blockquotes, lists, images, and videos)'} 
                     applied={!!applied['content']} 
                     onApply={() => applyField('content', result.content)} 
+                  />
+                )}
+                {result.tags && result.tags.length > 0 && (
+                  <ResultCard 
+                    label="Tags" 
+                    value={result.tags.join(', ')} 
+                    applied={!!applied['tags']} 
+                    onApply={() => applyField('tags', result.tags)} 
                   />
                 )}
                 {result.metaTitle && (
