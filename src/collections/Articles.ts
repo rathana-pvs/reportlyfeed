@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
+import { BlocksFeature, lexicalEditor, UploadFeature } from '@payloadcms/richtext-lexical'
 import { VideoEmbed } from '../blocks/VideoEmbed'
+import { TwitterEmbed } from '../blocks/TwitterEmbed'
 import { slugify } from '../lib/utils'
 import { revalidateTag } from 'next/cache'
 
@@ -126,6 +128,26 @@ export const Articles: CollectionConfig = {
       name: 'content',
       type: 'richText',
       label: 'Content',
+      editor: lexicalEditor({
+        features: ({ defaultFeatures }) => [
+          ...defaultFeatures,
+          UploadFeature({
+            collections: {
+              media: {
+                fields: [
+                  {
+                    name: 'caption',
+                    type: 'text',
+                  },
+                ],
+              },
+            },
+          }),
+          BlocksFeature({
+            blocks: [VideoEmbed, TwitterEmbed],
+          }),
+        ],
+      }),
     },
     { name: 'coverImage', type: 'upload', relationTo: 'media', required: true },
     { name: 'credit', type: 'text', admin: { description: 'News source or attribution (e.g. AP, Reuters, Reportly).' } },
