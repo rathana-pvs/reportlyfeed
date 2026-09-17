@@ -236,10 +236,15 @@ export const AIAssistant: React.FC = () => {
           return true
         })
       }
-      // `initialValue` belongs to Payload's server-loaded form state. Replacing
-      // it here prevents Payload/Lexical from tracking the generated content as
-      // a normal modification and can leave the editor stale after navigation.
-      dispatchFields({ type: 'UPDATE', path: 'content', value: lexicalValue, valid: true })
+      // Lexical mounts its visible editor state from `initialValue`. Updating
+      // only `value` saves the data but leaves the editor blank until reload.
+      dispatchFields({
+        type: 'UPDATE',
+        path: 'content',
+        value: lexicalValue,
+        initialValue: lexicalValue,
+        valid: true,
+      })
     } else {
       dispatchFields({ type: 'UPDATE', path: fieldName, value, valid: true })
     }

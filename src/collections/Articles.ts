@@ -125,6 +125,7 @@ export const Articles: CollectionConfig = {
     {
       name: 'content',
       type: 'richText',
+      label: 'Content',
     },
     { name: 'coverImage', type: 'upload', relationTo: 'media', required: true },
     { name: 'credit', type: 'text', admin: { description: 'News source or attribution (e.g. AP, Reuters, Reportly).' } },

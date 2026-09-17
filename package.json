@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "node scripts/patch-payload-lexical.cjs",
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
