@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { slugify } from '../lib/utils'
+import { resolveUniqueSlug } from '../lib/slug'
 
 export const Authors: CollectionConfig = {
   slug: 'authors',
@@ -14,10 +15,40 @@ export const Authors: CollectionConfig = {
     delete: ({ req }) => (req.user as any)?.role === 'admin',
   },
   hooks: {
-    beforeChange: [
-      async ({ data }) => {
+    beforeValidate: [
+      async ({ data, req, originalDoc }) => {
+        if (!data) return data
+        const docId = originalDoc?.id || (data as any)?.id
+
         if (!data.slug && data.name) {
-          data.slug = slugify(data.name) || `author-${Date.now()}`
+          const candidate = slugify(data.name) || `author-${Date.now().toString().slice(-5)}`
+          data.slug = await resolveUniqueSlug({
+            payload: req?.payload,
+            collection: 'authors',
+            candidateSlug: candidate,
+            docId,
+          })
+        } else if (data.slug && data.slug !== originalDoc?.slug) {
+          data.slug = await resolveUniqueSlug({
+            payload: req?.payload,
+            collection: 'authors',
+            candidateSlug: data.slug,
+            docId,
+          })
+        }
+        return data
+      },
+    ],
+    beforeChange: [
+      async ({ data, req, originalDoc }) => {
+        if (!data.slug && (data.name || originalDoc?.name)) {
+          const candidate = slugify(data.name || originalDoc?.name) || `author-${Date.now().toString().slice(-5)}`
+          data.slug = await resolveUniqueSlug({
+            payload: req?.payload,
+            collection: 'authors',
+            candidateSlug: candidate,
+            docId: originalDoc?.id,
+          })
         }
         return data
       },

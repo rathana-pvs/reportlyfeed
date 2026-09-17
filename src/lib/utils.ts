@@ -18,6 +18,7 @@ export function slugify(text: string): string {
     .replace(/-+/g, '-')
 }
 
+
 export function formatDate(dateString: string | undefined): string {
   if (!dateString) return ''
   try {

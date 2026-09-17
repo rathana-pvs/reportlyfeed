@@ -3,6 +3,7 @@ import { BlocksFeature, lexicalEditor, UploadFeature } from '@payloadcms/richtex
 import { VideoEmbed } from '../blocks/VideoEmbed'
 import { TwitterEmbed } from '../blocks/TwitterEmbed'
 import { slugify } from '../lib/utils'
+import { generateSmartSlug, resolveUniqueSlug } from '../lib/slug'
 import { revalidateTag } from 'next/cache'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportlyfeed.com'
@@ -41,11 +42,46 @@ export const Articles: CollectionConfig = {
     delete: ({ req }) => (req.user as any)?.role === 'admin',
   },
   hooks: {
+    beforeValidate: [
+      async ({ data, req, operation, originalDoc }) => {
+        if (!data) return data
+        const docId = originalDoc?.id || (data as any)?.id
+
+        // Auto-generate smart 4-5 word unique slug if empty
+        if (!data.slug) {
+          const title = data.title || originalDoc?.title
+          if (title) {
+            const candidate = generateSmartSlug(title, { minWords: 4, maxWords: 5, maxLength: 50 })
+            data.slug = await resolveUniqueSlug({
+              payload: req?.payload,
+              collection: 'articles',
+              candidateSlug: candidate,
+              docId,
+            })
+          }
+        } else if (data.slug !== originalDoc?.slug) {
+          // If custom slug was entered or modified, sanitize and resolve collisions
+          data.slug = await resolveUniqueSlug({
+            payload: req?.payload,
+            collection: 'articles',
+            candidateSlug: data.slug,
+            docId,
+          })
+        }
+
+        return data
+      },
+    ],
     beforeChange: [
-      async ({ data }) => {
-        if (!data.slug && data.title) {
-          const generatedSlug = slugify(data.title)
-          data.slug = generatedSlug || `article-${Date.now()}`
+      async ({ data, req, originalDoc }) => {
+        if (!data.slug && (data.title || originalDoc?.title)) {
+          const candidate = generateSmartSlug(data.title || originalDoc?.title, { minWords: 4, maxWords: 5, maxLength: 50 })
+          data.slug = await resolveUniqueSlug({
+            payload: req?.payload,
+            collection: 'articles',
+            candidateSlug: candidate,
+            docId: originalDoc?.id,
+          })
         }
         
         if (data.content) {
@@ -100,7 +136,7 @@ export const Articles: CollectionConfig = {
       index: true,
       admin: {
         position: 'sidebar',
-        description: 'Auto-generated from title if left empty.',
+        description: 'Smart unique 4-5 word slug. Auto-generated from title if left empty.',
       },
     },
     {
