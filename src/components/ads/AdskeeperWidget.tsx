@@ -1,12 +1,14 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 interface AdskeeperWidgetProps {
   widgetId?: string
   className?: string
   label?: string
   desktopOnly?: boolean
+  lazy?: boolean
+  rootMargin?: string
 }
 
 export const AdskeeperWidget: React.FC<AdskeeperWidgetProps> = ({
@@ -14,10 +16,14 @@ export const AdskeeperWidget: React.FC<AdskeeperWidgetProps> = ({
   className = '',
   label = 'Advertisement',
   desktopOnly = false,
+  lazy = false,
+  rootMargin = '500px 0px',
 }) => {
   const widgetId = widgetIdProp || '2065377'
   const [isDesktop, setIsDesktop] = useState<boolean | null>(null)
   const [mounted, setMounted] = useState<boolean>(false)
+  const [shouldLoad, setShouldLoad] = useState<boolean>(() => !lazy)
+  const lazyLoadTargetRef = useRef<HTMLDivElement>(null)
 
   // Use mock ads in local development unless NEXT_PUBLIC_USE_REAL_ADS='true' is set
   const isDev = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_REAL_ADS !== 'true'
@@ -34,9 +40,34 @@ export const AdskeeperWidget: React.FC<AdskeeperWidgetProps> = ({
     return () => window.removeEventListener('resize', checkDesktop)
   }, [desktopOnly])
 
+  useEffect(() => {
+    if (!lazy || shouldLoad) return
+    if (desktopOnly && isDesktop !== true) return
+
+    const target = lazyLoadTargetRef.current
+    if (!target) return
+
+    if (!('IntersectionObserver' in window)) {
+      setShouldLoad(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+        setShouldLoad(true)
+        observer.disconnect()
+      },
+      { rootMargin, threshold: 0 }
+    )
+
+    observer.observe(target)
+    return () => observer.disconnect()
+  }, [desktopOnly, isDesktop, lazy, rootMargin, shouldLoad])
+
   // Only load real Adskeeper script in Production mode (or when forced via env)
   useEffect(() => {
-    if (!mounted || !widgetId || isDev) return
+    if (!mounted || !shouldLoad || !widgetId || isDev) return
     // Do not initialize desktop-only widgets until the viewport has been
     // measured and confirmed as desktop-sized.
     if (desktopOnly && isDesktop !== true) return
@@ -59,12 +90,25 @@ export const AdskeeperWidget: React.FC<AdskeeperWidgetProps> = ({
     } catch (e) {
       console.warn('Adskeeper script init exception:', e)
     }
-  }, [widgetId, desktopOnly, isDesktop, mounted, isDev])
+  }, [widgetId, desktopOnly, isDesktop, mounted, isDev, shouldLoad])
 
   // Keep desktop-only slots out of the initial render and off mobile devices.
   // This prevents both a visual flash and ad requests before the viewport check.
   if (desktopOnly && isDesktop !== true) {
     return null
+  }
+
+  // Do not add the Adskeeper marker to the DOM until the slot approaches the
+  // viewport. This prevents below-the-fold impressions from being requested
+  // for readers who never reach the placement.
+  if (!shouldLoad) {
+    return (
+      <div
+        ref={lazyLoadTargetRef}
+        className={`my-6 min-h-px w-full ${className}`}
+        aria-hidden="true"
+      />
+    )
   }
 
   // 1. Render Mock Ad Preview for Local Development
@@ -115,4 +159,3 @@ export const AdskeeperWidget: React.FC<AdskeeperWidgetProps> = ({
     </div>
   )
 }
-

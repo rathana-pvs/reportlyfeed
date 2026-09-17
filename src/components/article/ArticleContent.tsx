@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useId, useState } from 'react'
 import { AdskeeperWidget } from '@/components/ads/AdskeeperWidget'
 import { ChevronDown } from 'lucide-react'
 import Image from 'next/image'
@@ -9,10 +9,18 @@ import { getImageUrl } from '@/lib/utils'
 interface ArticleContentProps {
   content: any
   excerpt?: string
+  underArticleWidgetId?: string
+  feedWidgetId?: string
 }
 
-export const ArticleContent: React.FC<ArticleContentProps> = ({ content, excerpt }) => {
+export const ArticleContent: React.FC<ArticleContentProps> = ({
+  content,
+  excerpt,
+  underArticleWidgetId = '2065383',
+  feedWidgetId = '2065376',
+}) => {
   const [isExpanded, setIsExpanded] = useState(false)
+  const expandedContentId = useId()
 
   // Helper to render individual blocks from Lexical AST
   const renderBlock = (block: any, index: number) => {
@@ -138,67 +146,72 @@ export const ArticleContent: React.FC<ArticleContentProps> = ({ content, excerpt
     return null
   }
 
-  // Handle plain string content fallback
+  const toParagraphBlock = (text: string) => ({
+    type: 'paragraph',
+    children: [{ type: 'text', text, format: 0, style: '', version: 1 }],
+  })
+
+  let blocks: any[] = []
   if (typeof content === 'string') {
-    return (
-      <div className="prose prose-invert max-w-none">
-        <p className="text-text-primary text-base sm:text-lg font-serif leading-relaxed">{content}</p>
-        <AdskeeperWidget
-          widgetId={process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_IN_ARTICLE_1}
-          label="In-Article Ad 1"
-        />
-      </div>
-    )
+    blocks = content
+      .split(/\n\s*\n/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean)
+      .map(toParagraphBlock)
+  } else if (Array.isArray(content?.root?.children)) {
+    blocks = content.root.children
   }
 
-  const blocks = content?.root?.children || []
-  if (blocks.length === 0) {
-    return excerpt ? (
-      <div className="prose prose-invert max-w-none">
-        <p className="text-text-primary text-base sm:text-lg font-serif leading-relaxed">{excerpt}</p>
-        <AdskeeperWidget
-          widgetId={process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_IN_ARTICLE_1}
-          label="In-Article Ad 1"
-        />
-      </div>
-    ) : null
+  if (blocks.length === 0 && excerpt) {
+    blocks = [toParagraphBlock(excerpt)]
   }
+  if (blocks.length === 0) return null
 
-  const p1 = blocks[0]
-  const p2 = blocks[1]
-  const remainingBlocks = blocks.slice(2)
+  const paragraphIndexes = blocks.reduce<number[]>((indexes, block, index) => {
+    if (block?.type === 'paragraph') indexes.push(index)
+    return indexes
+  }, [])
+
+  // Reveal everything through the second paragraph. Non-paragraph media and
+  // embeds that occur before it remain in their original editorial position.
+  const initialBlockCount = paragraphIndexes.length >= 2
+    ? paragraphIndexes[1] + 1
+    : blocks.length
+  const initialBlocks = blocks.slice(0, initialBlockCount)
+  const remainingBlocks = blocks.slice(initialBlockCount)
   const hasMoreContent = remainingBlocks.length > 0
+
+  // Place the first in-article unit after paragraph one. At this point readers
+  // have already seen the title, cover image, excerpt, and opening paragraph.
+  const inArticleAdAfterIndex = paragraphIndexes[0] ?? 0
+  const articleIsComplete = !hasMoreContent || isExpanded
+  const showBottomFeedAd = paragraphIndexes.length >= 3
+  const showUnderArticleAd = blocks.length >= 6 && showBottomFeedAd
 
   return (
     <div className="space-y-6">
-      {/* 1. Paragraph 1 (p1) */}
-      <div>{renderBlock(p1, 0)}</div>
-
-      {/* 2. Ads (in_article_1) */}
-      <AdskeeperWidget
-        widgetId={process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_IN_ARTICLE_1}
-        label="In-Article Ad 1"
-      />
-
-      {/* 3. Paragraph 2 (p2) with very light blur effect when collapsed */}
-      {p2 && (
-        <div className="relative">
-          <div className={!isExpanded && hasMoreContent ? 'relative overflow-hidden select-none max-h-24' : ''}>
-            <div className={!isExpanded && hasMoreContent ? 'filter blur-[1px] opacity-90 pointer-events-none transition-all duration-300' : ''}>
-              {renderBlock(p2, 1)}
-            </div>
-            {!isExpanded && hasMoreContent && (
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white pointer-events-none" />
+      {/* First two paragraphs, with the first ad after paragraph one. */}
+      <div>
+        {initialBlocks.map((block: any, index: number) => (
+          <React.Fragment key={`initial-${index}`}>
+            {renderBlock(block, index)}
+            {index === inArticleAdAfterIndex && (
+              <AdskeeperWidget
+                widgetId={process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_IN_ARTICLE_1}
+                label="In-Article Ad 1"
+              />
             )}
-          </div>
-        </div>
-      )}
+          </React.Fragment>
+        ))}
+      </div>
 
-      {/* 4. Read More Button trigger */}
+      {/* Continue only when additional editorial content remains. */}
       {!isExpanded && hasMoreContent && (
         <div className="flex flex-col items-center justify-center pt-2 pb-4">
           <button
             onClick={() => setIsExpanded(true)}
+            aria-expanded={isExpanded}
+            aria-controls={expandedContentId}
             className="group inline-flex items-center gap-2.5 px-7 py-3 bg-accent-primary hover:bg-accent-primary-hover text-white font-mono text-xs font-bold uppercase tracking-wider rounded-full shadow-lg transition-all transform hover:-translate-y-0.5 cursor-pointer"
           >
             <span>Read More</span>
@@ -207,17 +220,47 @@ export const ArticleContent: React.FC<ArticleContentProps> = ({ content, excerpt
         </div>
       )}
 
-      {/* 5. Expanded Content (in_article_2 -> p3 -> p4 ...) */}
-      {isExpanded && (
-        <div className="space-y-6 animate-fadeIn">
-          {/* Ads (in_article_2) */}
-          <AdskeeperWidget
-            widgetId={process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_IN_ARTICLE_2}
-            label="In-Article Ad 2"
-          />
+      {/* Keep editorial content in the HTML for SEO and accessibility. Ads in
+          this region still do not mount until the reader expands it. */}
+      {hasMoreContent && (
+        <div
+          id={expandedContentId}
+          hidden={!isExpanded}
+          aria-hidden={!isExpanded}
+          className="space-y-6 animate-fadeIn"
+        >
+          {isExpanded && (
+            <AdskeeperWidget
+              widgetId={process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_IN_ARTICLE_2}
+              label="In-Article Ad 2"
+            />
+          )}
 
-          {/* Remaining Paragraphs & Blocks (p3, p4, ...) */}
-          {remainingBlocks.map((block: any, idx: number) => renderBlock(block, idx + 2))}
+          {remainingBlocks.map((block: any, index: number) =>
+            renderBlock(block, index + initialBlockCount)
+          )}
+        </div>
+      )}
+
+      {/* Lower placements exist only once the full article is available. */}
+      {articleIsComplete && (showUnderArticleAd || showBottomFeedAd) && (
+        <div className="pt-4 mt-4 space-y-6">
+          {showUnderArticleAd && (
+            <AdskeeperWidget
+              widgetId={underArticleWidgetId}
+              label="Under Article Ads"
+              desktopOnly
+              lazy
+            />
+          )}
+          {showBottomFeedAd && (
+            <AdskeeperWidget
+              widgetId={feedWidgetId}
+              label="Bottom Feed Ads"
+              lazy
+              rootMargin="250px 0px"
+            />
+          )}
         </div>
       )}
     </div>

@@ -5,6 +5,18 @@ import { revalidateTag } from 'next/cache'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportlyfeed.com'
 
+const extractText = (value: any): string => {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  if (Array.isArray(value)) return value.map(extractText).join(' ')
+  if (typeof value !== 'object') return ''
+
+  const ownText = typeof value.text === 'string' ? value.text : ''
+  const childText = value.children ? extractText(value.children) : ''
+  const rootText = value.root ? extractText(value.root) : ''
+  return [ownText, childText, rootText].filter(Boolean).join(' ')
+}
+
 export const Articles: CollectionConfig = {
   slug: 'articles',
   defaultSort: '-publishedAt',
@@ -35,8 +47,8 @@ export const Articles: CollectionConfig = {
         }
         
         if (data.content) {
-          const contentStr = JSON.stringify(data.content)
-          const wordCount = contentStr.split(/\s+/).length
+          const contentText = extractText(data.content).trim()
+          const wordCount = contentText ? contentText.split(/\s+/).length : 0
           data.readTime = Math.max(1, Math.ceil(wordCount / 200))
         }
 

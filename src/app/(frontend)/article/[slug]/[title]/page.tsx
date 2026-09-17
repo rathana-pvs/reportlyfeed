@@ -146,26 +146,16 @@ export default async function ShareLinkArticlePage({
             )}
 
             {/* 4. Article Content */}
-            <ArticleContent content={article.content} excerpt={article.excerpt} />
-
-            {/* 5. Under Article Ads (Desktop Only) & Bottom Feed Ads */}
-            <div className="pt-4 mt-4 space-y-6">
-              <AdskeeperWidget
-                widgetId={
-                  process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_UNDER_ARTICLE ||
-                  '2065383'
-                }
-                label="Under Article Ads"
-                desktopOnly
-              />
-              <AdskeeperWidget
-                widgetId={
-                  process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_FEED ||
-                  '2065376'
-                }
-                label="Bottom Feed Ads"
-              />
-            </div>
+            <ArticleContent
+              content={article.content}
+              excerpt={article.excerpt}
+              underArticleWidgetId={
+                process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_UNDER_ARTICLE || '2065383'
+              }
+              feedWidgetId={
+                process.env.NEXT_PUBLIC_ADS_KEEPER_WIDGET_FEED || '2065376'
+              }
+            />
           </article>
 
           {/* Right Side - Ads Sidebar (PC / Desktop only) */}
