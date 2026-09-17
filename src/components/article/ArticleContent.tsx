@@ -185,8 +185,8 @@ export const ArticleContent: React.FC<ArticleContentProps> = ({
   // have already seen the title, cover image, excerpt, and opening paragraph.
   const inArticleAdAfterIndex = paragraphIndexes[0] ?? 0
   const articleIsComplete = !hasMoreContent || isExpanded
-  const showBottomFeedAd = paragraphIndexes.length >= 3
-  const showUnderArticleAd = blocks.length >= 6 && showBottomFeedAd
+  const showBottomFeedAd = Boolean(feedWidgetId)
+  const showUnderArticleAd = blocks.length >= 6 && Boolean(underArticleWidgetId)
 
   return (
     <div className="space-y-6">
@@ -242,10 +242,10 @@ export const ArticleContent: React.FC<ArticleContentProps> = ({
         </div>
       )}
 
-      {/* Lower placements exist only once the full article is available. */}
-      {articleIsComplete && (showUnderArticleAd || showBottomFeedAd) && (
+      {/* Lower placements: Bottom Feed Ads show on initial page load; Under Article Ads appear when full article is expanded/complete */}
+      {((articleIsComplete && showUnderArticleAd) || showBottomFeedAd) && (
         <div className="pt-4 mt-4 space-y-6">
-          {showUnderArticleAd && (
+          {articleIsComplete && showUnderArticleAd && (
             <AdskeeperWidget
               widgetId={underArticleWidgetId}
               label="Under Article Ads"
