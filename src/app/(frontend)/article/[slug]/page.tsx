@@ -11,9 +11,11 @@ import { Clock } from 'lucide-react'
 
 export async function generateStaticParams() {
   const articles = await getArticles({ limit: 40 })
-  return articles.map((art: any) => ({
-    slug: art.slug,
-  }))
+  return articles
+    .filter((art: any) => art.slug && typeof art.slug === 'string' && art.slug.length <= 150 && !art.slug.startsWith('http'))
+    .map((art: any) => ({
+      slug: art.slug,
+    }))
 }
 
 export const dynamicParams = true
