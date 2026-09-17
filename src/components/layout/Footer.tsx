@@ -1,5 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { WhosAmungUs } from '@/components/widgets/WhosAmungUs'
 
 export const Footer: React.FC = () => {
@@ -10,9 +11,13 @@ export const Footer: React.FC = () => {
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-4">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 bg-accent-primary flex items-center justify-center font-black text-white text-lg">
-                R
-              </div>
+              <Image
+                src="/icon.png"
+                alt="ReportlyFeed Icon"
+                width={32}
+                height={32}
+                className="w-8 h-8 rounded-md object-cover"
+              />
               <span className="text-xl font-black tracking-tight text-white uppercase">
                 REPORTLY<span className="text-accent-primary">FEED</span>
               </span>

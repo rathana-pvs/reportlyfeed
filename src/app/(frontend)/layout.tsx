@@ -26,10 +26,27 @@ export const metadata: Metadata = {
   title: 'ReportlyFeed — Insightful News & Verified Reports',
   description: 'Independent, data-driven political news, breaking reports, global market analysis, and investigative journalism.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://reportlyfeed.com'),
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   openGraph: {
     siteName: 'ReportlyFeed',
     type: 'website',
     locale: 'en_US',
+    images: [
+      {
+        url: '/logo.png',
+        width: 1376,
+        height: 768,
+        alt: 'ReportlyFeed Logo',
+      },
+    ],
   },
 }
 

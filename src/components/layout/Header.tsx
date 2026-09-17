@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Search } from 'lucide-react'
 
 export const Header: React.FC = () => {
@@ -22,9 +23,14 @@ export const Header: React.FC = () => {
         <div className="h-header flex items-center justify-between gap-4">
           {/* AP News style Brand Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 bg-accent-primary flex items-center justify-center font-black text-white text-xl tracking-tighter shadow-sm group-hover:bg-accent-primary-hover transition-colors">
-              R
-            </div>
+            <Image
+              src="/icon.png"
+              alt="ReportlyFeed Icon"
+              width={36}
+              height={36}
+              className="w-9 h-9 rounded-md object-cover shadow-sm group-hover:opacity-90 transition-opacity"
+              priority
+            />
             <div className="flex flex-col">
               <span className="text-2xl font-black tracking-tighter text-text-primary uppercase flex items-center">
                 REPORTLY<span className="text-accent-primary font-black ml-0.5">FEED</span>
