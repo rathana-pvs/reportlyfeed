@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "generate:importmap": "payload generate:importmap",
     "generate:types": "payload generate:types",
     "seed": "cross-env NODE_ENV=development PAYLOAD_CONFIG_PATH=payload.config.ts tsx src/lib/seed.ts",
     "import:pulefeed": "cross-env NODE_ENV=development PAYLOAD_CONFIG_PATH=payload.config.ts tsx src/lib/import-pulefeed.ts",
