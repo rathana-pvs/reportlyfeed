@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useFormFields, useForm } from '@payloadcms/ui'
+import { useDocumentInfo, useFormFields, useForm } from '@payloadcms/ui'
 
 interface AIResult {
   title?: string
@@ -18,6 +18,7 @@ interface AIResult {
 type Action = 'full' | 'content_only' | 'seo_only' | 'scrape_direct'
 
 export const AIAssistant: React.FC = () => {
+  const { id } = useDocumentInfo()
   const { dispatchFields } = useForm()
   const titleValue = useFormFields(([fields]: any) => fields?.title?.value as string || '')
   const excerptValue = useFormFields(([fields]: any) => fields?.excerpt?.value as string || '')
@@ -32,6 +33,8 @@ export const AIAssistant: React.FC = () => {
   const [scrapeUrlValue, setScrapeUrlValue] = useState('')
 
   const [mounted, setMounted] = useState(false)
+  const documentKey = id ? String(id) : 'new'
+  const requestVersionRef = useRef(0)
 
   useEffect(() => {
     setMounted(true)
@@ -39,7 +42,22 @@ export const AIAssistant: React.FC = () => {
     return () => clearTimeout(t)
   }, [])
 
+  // Payload reuses custom field components during SPA document navigation.
+  // Clear document-scoped assistant state so results from one article cannot
+  // leak into the next article's form.
+  useEffect(() => {
+    requestVersionRef.current += 1
+    setOpen(false)
+    setStatus('idle')
+    setActiveAction(null)
+    setResult(null)
+    setError('')
+    setApplied({})
+    setScrapeUrlValue('')
+  }, [documentKey])
+
   const callAI = async (action: Action) => {
+    const requestVersion = ++requestVersionRef.current
     setStatus('loading')
     setActiveAction(action)
     setError('')
@@ -58,12 +76,14 @@ export const AIAssistant: React.FC = () => {
         }),
       })
       const json = await res.json()
+      if (requestVersion !== requestVersionRef.current) return
       if (!res.ok || !json.success) {
         throw new Error(json.error || 'Something went wrong')
       }
       setResult(json.data)
       setStatus('success')
     } catch (err: any) {
+      if (requestVersion !== requestVersionRef.current) return
       setError(err?.message || 'Failed to generate. Try again.')
       setStatus('error')
     }
@@ -216,7 +236,10 @@ export const AIAssistant: React.FC = () => {
           return true
         })
       }
-      dispatchFields({ type: 'UPDATE', path: 'content', value: lexicalValue, initialValue: lexicalValue, valid: true })
+      // `initialValue` belongs to Payload's server-loaded form state. Replacing
+      // it here prevents Payload/Lexical from tracking the generated content as
+      // a normal modification and can leave the editor stale after navigation.
+      dispatchFields({ type: 'UPDATE', path: 'content', value: lexicalValue, valid: true })
     } else {
       dispatchFields({ type: 'UPDATE', path: fieldName, value, valid: true })
     }
